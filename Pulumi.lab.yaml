@@ -1,4 +1,0 @@
-config:
-  netbox:serverUrl: http://localhost:8000
-  netbox:apiToken:
-    secure: AAABAKv2/mSKr9hqFukHHFSOoCfvIY3CzTlvL2llFK20c9Y0Iryi1/4VeUIXVL8WxNyApvXHhWgZ0LaPVuqzoL2CD/pW0i/i
