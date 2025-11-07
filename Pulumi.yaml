@@ -1,0 +1,18 @@
+name: pulumi-netbox
+description: A minimal Python Pulumi program
+runtime:
+  name: python
+  options:
+    toolchain: pip
+    virtualenv: venv
+config:
+  pulumi:tags:
+    value:
+      pulumi:template: python
+packages:
+  netbox:
+    source: terraform-provider
+    version: 1.0.1
+    parameters:
+      - e-breuninger/netbox
+      - 5.0.0
