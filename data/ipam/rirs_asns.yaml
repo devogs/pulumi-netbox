@@ -1,0 +1,42 @@
+# data/ipam/rirs_asns.yaml
+
+rirs:
+  - name: RFC 6996 Private Use ASNs
+    slug: rfc6996
+    is_private: true
+    description: Reserved ASNs for Private Use.
+
+# --- NOUVEAU : Plages d'ASNs (AsnRange) ---
+# Note: AsnRange does not exist in all NetBox provider versions.
+# asn_ranges:
+#   - name: 16-bit Private ASNs
+#     slug: private-16bit-asn-range
+#     rir_slug: rfc6996
+#     start: 64512
+#     end: 65534
+#     description: ASNs réservés RFC 6996 (16-bit).
+
+#   - name: 32-bit Private ASNs
+#     slug: private-32bit-asn-range
+#     rir_slug: rfc6996
+#     start: 4200000000
+#     end: 4294967294
+#     description: ASNs réservés RFC 6996 (32-bit).
+
+# --- ASNs individuels pour les équipements du Lab (Asn) ---
+asns:
+  - asn: 65001
+    rir_slug: rfc6996
+    description: ASN for Spine-1 (eBGP).
+  - asn: 65002
+    rir_slug: rfc6996
+    description: ASN for Spine-2 (eBGP).
+  - asn: 65003
+    rir_slug: rfc6996
+    description: ASN for Leaf-1 (eBGP).
+  - asn: 65004
+    rir_slug: rfc6996
+    description: ASN for Leaf-2 (eBGP).
+  - asn: 65005
+    rir_slug: rfc6996
+    description: ASN for Leaf-3 (eBGP).

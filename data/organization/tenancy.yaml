@@ -1,0 +1,13 @@
+---
+# data/organization/tenancy.yaml
+
+tenant_groups:
+  - name: Devogs Infrastructure
+    slug: devogs
+    description: Group for all infrastructure resources managed by the Devops team.
+
+tenants:
+  - name: Containerlab (CLAB)
+    slug: clab
+    group_slug: devogs
+    description: Resources dedicated to network emulation labs using Containerlab.

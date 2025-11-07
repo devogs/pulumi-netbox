@@ -1,0 +1,33 @@
+# data/ipam/prefixes.yaml
+
+# --- Agrégats Privés Globaux ---
+aggregates:
+  - prefix: 10.0.0.0/8
+    rir_slug: rfc6996
+    description: RFC 1918 Private Class A Range.
+  - prefix: 172.16.0.0/12
+    rir_slug: rfc6996
+    description: RFC 1918 Private Class B Range.
+  - prefix: 192.168.0.0/16
+    rir_slug: rfc6996
+    description: RFC 1918 Private Class C Range.
+
+# --- Prefixes Spécifiques au Lab ---
+prefixes:
+  # Management Network (Containerlab default)
+  - prefix: 172.22.0.0/16
+    description: Containerlab Host/Mgmt Network.
+    status: active
+    vrf_slug: mgmt
+
+  # Loopback Prefixes (within Class A)
+  - prefix: 10.0.0.0/24
+    description: Loopback Prefixes.
+    status: reserved
+    vrf_slug: infra-vrf
+
+  # Peer-Link Prefixes (within Class A)
+  - prefix: 10.0.1.0/24
+    description: Peer-to-Peer Links (Fabric Underlay).
+    status: reserved
+    vrf_slug: infra-vrf

@@ -1,0 +1,14 @@
+# data/ipam/vrfs.yaml
+
+vrfs:
+  # VRF par défaut de Containerlab pour les adresses primaires/mgmt
+  - name: Mgmt
+    rd: '1:1'
+    slug: mgmt
+    description: Management VRF for Containerlab infrastructure.
+
+  # VRF pour le réseau de transport (fabric)
+  - name: Infra-VRF
+    rd: '2:2'
+    slug: infra-vrf
+    description: VRF dedicated to the underlay network fabric (loopbacks, peer-links).

@@ -1,0 +1,28 @@
+# data/organization/sites_locations.yaml
+
+regions:
+  - name: Virtual Infrastructure
+    slug: virtual-infra
+    description: High-level grouping for all virtual and emulated environments.
+
+site_groups:
+  - name: Containerlab Projects
+    slug: clab-projects
+    description: Group for all Containerlab-hosted network topologies.
+
+sites:
+  - name: CLAB-Host-Laptop
+    slug: clab-host-laptop
+    # We reference the group created above (dependency management in Python)
+    group_slug: clab-projects
+    description: The physical host (your laptop) running the Containerlab Docker daemon.
+    status: active
+    # We will need the ID of the 'clab' Tenant created in the previous step (dependency handled in __main__.py)
+    
+locations:
+  - name: cEOS-Spine-Leaf
+    slug: ceos-spine-leaf
+    # This location belongs to the site created above
+    site_slug: clab-host-laptop
+    description: Dedicated location for the Arista cEOS spine/leaf lab topology.
+    # Optional: status and tenant can also be set here
