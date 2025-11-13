@@ -1,4 +1,4 @@
-# __main__.py (Version Finale Corrigée)
+# __main__.py (Version with DCIM Integration)
 
 import pulumi
 import pulumi_netbox as netbox
@@ -11,6 +11,10 @@ from infra.organization import (
 from infra.ipam import (
     create_rirs, create_asns, create_vrfs, 
     create_aggregates, create_prefixes
+)
+from infra.dcim import ( # <-- NEW IMPORT
+    create_manufacturers, create_device_roles, 
+    create_device_types, create_devices
 )
 from infra.data_reader import read_yaml_data
 
@@ -28,6 +32,9 @@ sites_locations_data = read_yaml_data(['data', 'organization', 'sites_locations.
 rirs_asns_data = read_yaml_data(['data', 'ipam', 'rirs_asns.yaml'])
 vrfs_data = read_yaml_data(['data', 'ipam', 'vrfs.yaml'])
 prefixes_data = read_yaml_data(['data', 'ipam', 'prefixes.yaml'])
+
+# DCIM Data <-- NEW DATA LOAD
+dcim_devices_data = read_yaml_data(['data', 'dcim', 'devices.yaml'])
 
 
 # ---------------------------------
@@ -85,20 +92,54 @@ locations = create_locations(sites_locations_data.get('locations', []), sites_ou
 
 
 # ---------------------------------
-# 5. EXPORTS (Outputs for verification)
+# 5. ORCHESTRATION: DCIM (Foundation -> Devices) <-- NEW SECTION
 # ---------------------------------
 
-# Tenancy Exports (Reverted: assuming these functions return the ID Output directly)
-pulumi.export("TenantGroup_Devogs_ID", tenant_groups_outputs['devogs']) 
-pulumi.export("Tenant_CLAB_ID", clab_tenant_id_output)
+print("===================================")
+print("5. ORCHESTRATION: DCIM")
+print("===================================")
 
-# Site Exports (Reverted: assuming these functions return the ID Output directly)
-pulumi.export("LabSiteID", sites_outputs['clab-host-laptop']) 
-pulumi.export("cEOSLocationName", locations['ceos-spine-leaf'].name)
+# 5.1 Create Manufacturers
+manufacturer_resources = create_manufacturers(dcim_devices_data.get('manufacturers', []))
 
-# IPAM Exports (Keeping the correct resource object structure)
-pulumi.export("MgmtVRFID", vrf_resources['mgmt'].id) 
-pulumi.export("InfraVRFID", vrf_resources['infra-vrf'].id)
-pulumi.export("RirRFC6996ID", rir_resources['rfc6996'].id)
-pulumi.export("MgmtPrefix", prefixes['172.22.0.0/16'].prefix)
-pulumi.export("Spine1_ASN", asns[65001].asn)
+# 5.2 Create Device Roles
+device_role_resources = create_device_roles(dcim_devices_data.get('device_roles', []))
+
+# 5.3 Create Device Types (Depends on Manufacturers)
+device_type_resources = create_device_types(
+    dcim_devices_data.get('device_types', []), 
+    manufacturer_resources
+)
+
+# 5.4 Create Device Instances (Requires many dependencies)
+# We pass all necessary resource dictionaries to a single handler
+device_resources = create_devices(
+    dcim_devices_data.get('devices', {}),
+    {
+        'device_roles': device_role_resources,
+        'device_types': device_type_resources,
+        'sites': sites_outputs,       # From Section 4
+        'locations': locations,       # From Section 4
+        'tenants': tenants,           # From Section 2
+        'asns': asns                  # From Section 3
+    }
+)
+
+
+# ---------------------------------
+# 6. EXPORTS (Outputs for verification) <-- RENAMED SECTION (formerly 5)
+# ---------------------------------
+
+# # Tenancy Exports (Reverted: assuming these functions return the ID Output directly)
+# pulumi.export("TenantGroup_Devogs_ID", tenant_groups_outputs['devogs']) 
+# pulumi.export("Tenant_CLAB_ID", clab_tenant_id_output)
+
+# # Site Exports (Reverted: assuming these functions return the ID Output directly)
+# pulumi.export("LabSiteID", sites_outputs['clab-host-laptop']) 
+# pulumi.export("cEOSLocationName", locations['ceos-spine-leaf'].name)
+
+# # IPAM Exports (Keeping the correct resource object structure)
+# # pulumi.export("MgmtVRFID", vrf_resources['mgmt'].id) # Example export
+# # pulumi.export("RirRFC6996ID", rir_resources['rfc6996'].id) # Example export
+# # pulumi.export("MgmtPrefix", prefixes['172.22.0.0/16'].prefix) # Example export
+# # pulumi.export("Spine1_ASN", asns[65001].asn) # Example export

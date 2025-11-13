@@ -6,5 +6,5 @@ venv/
 # Pulumi
 sdks/
 .pulumi/
-Pulumi.*.yaml # This ignores Pulumi.dev.yaml, Pulumi.lab.yaml, etc.
-!Pulumi.yaml  # This ensures the main project file IS included
+!Pulumi.yaml
+Pulumi.*.yaml
