@@ -10,10 +10,10 @@ manufacturers:
 device_roles:
   - name: Spine
     slug: spine
-    color: 00AA00 # Green
+    color: 2196f3
   - name: Leaf
     slug: leaf
-    color: 0000AA # Blue
+    color: 4caf50
 
 device_types:
   - manufacturer_slug: arista
@@ -71,3 +71,12 @@ devices:
     location_slug: ceos-spine-leaf
     tenant_slug: clab
     asn: 65004
+
+  # Leaf 3
+  leaf-3:
+    device_type_slug: ceos-lab
+    device_role_slug: leaf
+    site_slug: clab-host-laptop
+    location_slug: ceos-spine-leaf
+    tenant_slug: clab
+    asn: 65005

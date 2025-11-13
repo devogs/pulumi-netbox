@@ -27,7 +27,7 @@ def create_device_roles(role_data_list: List[Dict[str, Any]]) -> Dict[str, netbo
         role = netbox.DeviceRole(data['slug'],
             name=data['name'],
             slug=data['slug'],
-            color=data['color']
+            color_hex=data['color']
         )
         created_roles[data['slug']] = role
     return created_roles
@@ -119,13 +119,13 @@ def create_devices(device_data_dict: Dict[str, Any], all_deps: Dict[str, Any]):
         device = netbox.Device(device_name,
             name=device_name.upper(), # SP-1, LF-1, etc.
             device_type_id=device_type_id_input,
-            device_role_id=device_role_id_input,
+            role_id=device_role_id_input,
             site_id=site_id_input,
             location_id=location_id_input,
             tenant_id=tenant_id_input,
             asset_tag=device_name.upper(),
             # Status: 1 = Active
-            status="1" 
+            status="active" 
         )
         
         # Store the created device resource
