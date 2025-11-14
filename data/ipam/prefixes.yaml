@@ -15,7 +15,7 @@ aggregates:
 # --- Prefixes Spécifiques au Lab ---
 prefixes:
   # Management Network (Containerlab default)
-  - prefix: 172.22.0.0/16
+  - prefix: 172.23.0.0/16
     description: Containerlab Host/Mgmt Network.
     status: active
     vrf_slug: mgmt

@@ -23,17 +23,23 @@ device_types:
     is_full_depth: false
     # Defines interfaces for this device type (cEOS)
     interfaces:
-      - name: Management1
+      - name: Management0
         type: 1000base-t
         mgmt_only: true
       - name: Ethernet1
-        type: 10gbase-x-sfpp
+        type: 1000base-t
       - name: Ethernet2
-        type: 10gbase-x-sfpp
+        type: 1000base-t
       - name: Ethernet3
-        type: 10gbase-x-sfpp
+        type: 1000base-t
       - name: Ethernet4
-        type: 10gbase-x-sfpp
+        type: 1000base-t
+      - name: Ethernet5
+        type: 1000base-t
+      - name: Ethernet6
+        type: 1000base-t
+      - name: Ethernet7
+        type: 1000base-t
 
 devices:
   # Spine 1
