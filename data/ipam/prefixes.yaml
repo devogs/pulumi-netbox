@@ -21,13 +21,13 @@ prefixes:
     vrf_slug: mgmt
 
   # Loopback Prefixes (within Class A)
-  - prefix: 10.0.0.0/24
+  - prefix: 10.255.0.0/24
     description: Loopback Prefixes.
     status: reserved
-    vrf_slug: infra-vrf
+    vrf_slug: None
 
   # Peer-Link Prefixes (within Class A)
   - prefix: 10.0.1.0/24
     description: Peer-to-Peer Links (Fabric Underlay).
     status: reserved
-    vrf_slug: infra-vrf
+    vrf_slug: None

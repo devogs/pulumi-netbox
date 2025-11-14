@@ -1,0 +1,82 @@
+# data/dcim/devices.yaml
+# Defines Manufacturers, Device Roles, Device Types, and Device Instances
+
+manufacturers:
+  - name: Arista Networks
+    slug: arista
+  - name: Cloud Networking Lab
+    slug: clab
+
+device_roles:
+  - name: Spine
+    slug: spine
+    color: 2196f3
+  - name: Leaf
+    slug: leaf
+    color: 4caf50
+
+device_types:
+  - manufacturer_slug: arista
+    model: cEOS-Lab
+    slug: ceos-lab
+    height_u: 0
+    is_full_depth: false
+    # Defines interfaces for this device type (cEOS)
+    interfaces:
+      - name: Management1
+        type: 1000base-t
+        mgmt_only: true
+      - name: Ethernet1
+        type: 10gbase-x-sfpp
+      - name: Ethernet2
+        type: 10gbase-x-sfpp
+      - name: Ethernet3
+        type: 10gbase-x-sfpp
+      - name: Ethernet4
+        type: 10gbase-x-sfpp
+
+devices:
+  # Spine 1
+  spine-1:
+    device_type_slug: ceos-lab
+    device_role_slug: spine
+    site_slug: clab-host-laptop
+    location_slug: ceos-spine-leaf
+    tenant_slug: clab
+    asn: 65001
+  
+  # Spine 2
+  spine-2:
+    device_type_slug: ceos-lab
+    device_role_slug: spine
+    site_slug: clab-host-laptop
+    location_slug: ceos-spine-leaf
+    tenant_slug: clab
+    asn: 65002
+
+  # Leaf 1
+  leaf-1:
+    device_type_slug: ceos-lab
+    device_role_slug: leaf
+    site_slug: clab-host-laptop
+    location_slug: ceos-spine-leaf
+    tenant_slug: clab
+    asn: 65003
+
+  # Leaf 2
+  leaf-2:
+    device_type_slug: ceos-lab
+    device_role_slug: leaf
+    site_slug: clab-host-laptop
+    location_slug: ceos-spine-leaf
+    tenant_slug: clab
+    asn: 65004
+
+  # Leaf 3
+  leaf-3:
+    device_type_slug: ceos-lab
+    device_role_slug: leaf
+    site_slug: clab-host-laptop
+    location_slug: ceos-spine-leaf
+    tenant_slug: clab
+    asn: 65005

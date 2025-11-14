@@ -1,22 +1,39 @@
-# __main__.py (Version Finale Corrigée)
+# __main__.py (Refactored for Orchestration/Atomic SOLID Structure)
 
 import pulumi
 import pulumi_netbox as netbox
+from pulumi import Output
+from typing import Dict, List, Any
 
-# Import logic modules (they are .py files inside the 'infra' package)
-from infra.organization import (
+# ===============================================
+# IMPORT ORCHESTRATION LOGIC (The "Looping" Layer)
+# ===============================================
+
+# 1. Organization Orchestration
+from infra.orchestration.organization import (
     create_tenant_groups, create_tenants, 
     create_regions, create_site_groups, create_sites, create_locations
 )
-from infra.ipam import (
+
+# 2. IPAM Orchestration
+from infra.orchestration.ipam import (
     create_rirs, create_asns, create_vrfs, 
     create_aggregates, create_prefixes
 )
-from infra.data_reader import read_yaml_data
+
+# 3. DCIM Orchestration
+from infra.orchestration.dcim import (
+    create_manufacturers, create_device_roles, 
+    create_device_types, create_interface_templates, create_devices
+)
+
+# 4. Utility Import (Assuming utils/data_reader.py)
+from utils.data_reader import read_yaml_data
+from utils.exports import run_exports
 
 
 # ---------------------------------
-# 1. READ ALL DATA (Data Access Responsibility)
+# 1. READ ALL DATA 💾
 # ---------------------------------
 # Load all YAML data files into simple Python dictionaries
 
@@ -29,76 +46,104 @@ rirs_asns_data = read_yaml_data(['data', 'ipam', 'rirs_asns.yaml'])
 vrfs_data = read_yaml_data(['data', 'ipam', 'vrfs.yaml'])
 prefixes_data = read_yaml_data(['data', 'ipam', 'prefixes.yaml'])
 
-
-# ---------------------------------
-# 2. ORCHESTRATION: TENANCY (Groups -> Tenants)
-# ---------------------------------
-
-# 2.1 Create Tenant Groups
-tenant_groups_outputs = create_tenant_groups(tenancy_data.get('tenant_groups', []))
-
-# 2.2 Create Tenants (Depends on Tenant Groups outputs)
-tenants = create_tenants(tenancy_data.get('tenants', []), tenant_groups_outputs)
-# Store the CLAB Tenant ID Output for later site creation
-clab_tenant_id_output = tenants['clab'].id # Tenants are resource objects, so .id is correct here
+# DCIM Data
+dcim_data = read_yaml_data(['data', 'dcim', 'devices.yaml'])
 
 
 # ---------------------------------
-# 3. ORCHESTRATION: IPAM (RIRs -> ASNs/Aggregates, VRFs -> Prefixes)
+# 2. ORCHESTRATION: ORGANIZATION 🏢
 # ---------------------------------
+# Ensure correct dependency order: Groups -> Tenants | Groups -> Sites -> Locations
 
-# 3.1 Create RIRs. Must return a dictionary of Rir OBJECTS for dependency chain.
-rir_resources = create_rirs(rirs_asns_data.get('rirs', []))
+# 2.1 Create Tenant Groups (Returns map of slug -> full resource object)
+tenant_groups = create_tenant_groups(tenancy_data.get('tenant_groups', []))
 
-# 3.2 Create VRFs. Must return a dictionary of Vrf OBJECTS for dependency chain.
-vrf_resources = create_vrfs(vrfs_data.get('vrfs', []))
+# 2.2 Create Tenants (Depends on Tenant Groups)
+tenants = create_tenants(tenancy_data.get('tenants', []), tenant_groups)
 
-# 3.3 Create Individual ASNs for eBGP routers (Passes Rir OBJECTS)
-asns = create_asns(rirs_asns_data.get('asns', []), rir_resources)
+# Get the specific Tenant resource needed for Site creation
+clab_tenant_resource = tenants['clab']
+clab_tenant_id_output = clab_tenant_resource.id.apply(lambda id: int(id))
 
-# 3.4 Create Aggregates (Passes Rir OBJECTS)
-aggregates = create_aggregates(prefixes_data.get('aggregates', []), rir_resources)
+# 2.3 Create Regions
+regions = create_regions(sites_locations_data.get('regions', []))
 
-# 3.5 Create Prefixes (Passes Vrf OBJECTS)
-prefixes = create_prefixes(prefixes_data.get('prefixes', []), vrf_resources)
+# 2.4 Create Site Groups
+site_groups = create_site_groups(sites_locations_data.get('site_groups', []))
 
-
-# ---------------------------------
-# 4. ORCHESTRATION: SITES (Groups/Regions -> Sites -> Locations)
-# ---------------------------------
-
-# 4.1 Create Regions
-regions_outputs = create_regions(sites_locations_data.get('regions', []))
-
-# 4.2 Create Site Groups
-site_groups_outputs = create_site_groups(sites_locations_data.get('site_groups', []))
-
-# 4.3 Create Sites (Depends on Site Groups outputs AND CLAB Tenant ID)
+# 2.5 Create Sites (Depends on Site Groups AND CLAB Tenant ID)
 sites_outputs = create_sites(
     sites_locations_data.get('sites', []), 
-    site_groups_outputs, 
+    site_groups, 
     clab_tenant_id_output
 )
 
-# 4.4 Create Locations (Depends on Sites outputs)
+# 2.6 Create Locations (Depends on Sites)
 locations = create_locations(sites_locations_data.get('locations', []), sites_outputs)
 
 
 # ---------------------------------
-# 5. EXPORTS (Outputs for verification)
+# 3. ORCHESTRATION: IPAM 🌐
+# ---------------------------------
+# Ensure correct dependency order: RIRs -> ASNs/Aggregates | VRFs -> Prefixes
+
+# 3.1 Create RIRs 
+rir_resources = create_rirs(rirs_asns_data.get('rirs', [])) 
+
+# 3.2 Create VRFs
+vrf_resources = create_vrfs(vrfs_data.get('vrfs', []))
+
+# 3.3 Create Individual ASNs (Passes Rir resources for dependency)
+asns = create_asns(rirs_asns_data.get('asns', []), rir_resources)
+
+# 3.4 Create Aggregates (Passes Rir resources for dependency)
+aggregates = create_aggregates(prefixes_data.get('aggregates', []), rir_resources)
+
+# 3.5 Create Prefixes (Passes Vrf resources for dependency)
+prefixes = create_prefixes(prefixes_data.get('prefixes', []), vrf_resources)
+
+
+# ---------------------------------
+# 4. ORCHESTRATION: DCIM 💻
+# ---------------------------------
+# Ensure correct dependency order: Manuf -> Roles -> Types -> Interfaces -> Devices
+
+# 4.1 Create Manufacturers
+manufacturers = create_manufacturers(dcim_data.get('manufacturers', []))
+
+# 4.2 Create Device Roles
+device_roles = create_device_roles(dcim_data.get('device_roles', []))
+
+# 4.3 Create Device Types (Depends on Manufacturers)
+device_types = create_device_types(dcim_data.get('device_types', []), manufacturers)
+
+# 4.4 Create Interface Templates (Depends on Device Types, honors SRP)
+create_interface_templates(dcim_data.get('device_types', []), device_types)
+
+# 4.5 Create Devices (The main orchestration point for all resources)
+
+# Collect ALL dependencies into one dictionary for the device creation function
+all_dependencies = {
+    'manufacturers': manufacturers,
+    'device_roles': device_roles,
+    'device_types': device_types,
+    'sites': sites_outputs, 
+    'locations': locations,
+    'tenants': tenants,
+    'asns': asns
+    # Note: IPAM resources (VRFs/Prefixes) are not direct dependencies of netbox.Device, 
+    # but are needed for the next step (Interfaces/IPs).
+}
+device_resources = create_devices(dcim_data.get('devices', {}), all_dependencies)
+
+
+# ---------------------------------
+# 5. EXPORTS 🚀
 # ---------------------------------
 
-# Tenancy Exports (Reverted: assuming these functions return the ID Output directly)
-pulumi.export("TenantGroup_Devogs_ID", tenant_groups_outputs['devogs']) 
-pulumi.export("Tenant_CLAB_ID", clab_tenant_id_output)
-
-# Site Exports (Reverted: assuming these functions return the ID Output directly)
-pulumi.export("LabSiteID", sites_outputs['clab-host-laptop']) 
-pulumi.export("cEOSLocationName", locations['ceos-spine-leaf'].name)
-
-# IPAM Exports (Keeping the correct resource object structure)
-pulumi.export("MgmtVRFID", vrf_resources['mgmt'].id) 
-pulumi.export("InfraVRFID", vrf_resources['infra-vrf'].id)
-pulumi.export("RirRFC6996ID", rir_resources['rfc6996'].id)
-pulumi.export("MgmtPrefix", prefixes['172.22.0.0/16'].prefix)
-pulumi.export("Spine1_ASN", asns[65001].asn)
+run_exports(
+    tenants=tenants, 
+    vrf_resources=vrf_resources, 
+    sites=sites_outputs, 
+    devices=device_resources
+)
