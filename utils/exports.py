@@ -3,19 +3,20 @@
 import pulumi
 from typing import Dict
 # Import the NetBox resource types for cleaner type hints
-from pulumi_netbox import Tenant, Vrf, Site, Device 
+from pulumi_netbox import Tenant, Vrf, Site, Device
+
 
 def run_exports(
-    tenants: Dict[str, Tenant], 
-    vrf_resources: Dict[str, Vrf], 
-    sites: Dict[str, Site], 
+    tenants: Dict[str, Tenant],
+    vrf_resources: Dict[str, Vrf],
+    sites: Dict[str, Site],
     devices: Dict[str, Device]
 ):
     """
     Centralizes all pulumi.export calls using the final resource dictionaries
     from the orchestration layer.
     """
-    
+
     print("-> Finalizing and Exporting Outputs...")
 
     # --- Organization Exports ---
@@ -33,10 +34,10 @@ def run_exports(
     # --- IPAM Exports ---
     try:
         # Exporting the Mgmt VRF, as 'infra-vrf' was removed.
-        pulumi.export("MgmtVRFID", vrf_resources['mgmt'].id) 
+        pulumi.export("MgmtVRFID", vrf_resources['mgmt'].id)
     except KeyError:
         print("Warning: VRF 'mgmt' not found for export.")
-    
+
     # --- DCIM Exports ---
     try:
         pulumi.export("Spine1Name", devices['spine-1'].name)

@@ -1,9 +1,9 @@
 # __main__.py (Refactored for Orchestration/Atomic SOLID Structure)
 
-import pulumi
-import pulumi_netbox as netbox
-from pulumi import Output
-from typing import Dict, List, Any
+# import pulumi
+# import pulumi_netbox as netbox
+# from pulumi import Output
+# from typing import Dict, List, Any
 
 # ===============================================
 # IMPORT ORCHESTRATION LOGIC (The "Looping" Layer)
@@ -11,19 +11,19 @@ from typing import Dict, List, Any
 
 # 1. Organization Orchestration
 from infra.orchestration.organization import (
-    create_tenant_groups, create_tenants, 
+    create_tenant_groups, create_tenants,
     create_regions, create_site_groups, create_sites, create_locations
 )
 
 # 2. IPAM Orchestration
 from infra.orchestration.ipam import (
-    create_rirs, create_asns, create_vrfs, 
+    create_rirs, create_asns, create_vrfs,
     create_aggregates, create_prefixes
 )
 
 # 3. DCIM Orchestration
 from infra.orchestration.dcim import (
-    create_manufacturers, create_device_roles, 
+    create_manufacturers, create_device_roles,
     create_device_types, create_interface_templates, create_devices
 )
 
@@ -73,8 +73,8 @@ site_groups = create_site_groups(sites_locations_data.get('site_groups', []))
 
 # 2.5 Create Sites (Depends on Site Groups AND CLAB Tenant ID)
 sites_outputs = create_sites(
-    sites_locations_data.get('sites', []), 
-    site_groups, 
+    sites_locations_data.get('sites', []),
+    site_groups,
     clab_tenant_id_output
 )
 
@@ -87,8 +87,8 @@ locations = create_locations(sites_locations_data.get('locations', []), sites_ou
 # ---------------------------------
 # Ensure correct dependency order: RIRs -> ASNs/Aggregates | VRFs -> Prefixes
 
-# 3.1 Create RIRs 
-rir_resources = create_rirs(rirs_asns_data.get('rirs', [])) 
+# 3.1 Create RIRs
+rir_resources = create_rirs(rirs_asns_data.get('rirs', []))
 
 # 3.2 Create VRFs
 vrf_resources = create_vrfs(vrfs_data.get('vrfs', []))
@@ -127,11 +127,11 @@ all_dependencies = {
     'manufacturers': manufacturers,
     'device_roles': device_roles,
     'device_types': device_types,
-    'sites': sites_outputs, 
+    'sites': sites_outputs,
     'locations': locations,
     'tenants': tenants,
     'asns': asns
-    # Note: IPAM resources (VRFs/Prefixes) are not direct dependencies of netbox.Device, 
+    # Note: IPAM resources (VRFs/Prefixes) are not direct dependencies of netbox.Device,
     # but are needed for the next step (Interfaces/IPs).
 }
 device_resources = create_devices(dcim_data.get('devices', {}), all_dependencies)
@@ -142,8 +142,8 @@ device_resources = create_devices(dcim_data.get('devices', {}), all_dependencies
 # ---------------------------------
 
 run_exports(
-    tenants=tenants, 
-    vrf_resources=vrf_resources, 
-    sites=sites_outputs, 
+    tenants=tenants,
+    vrf_resources=vrf_resources,
+    sites=sites_outputs,
     devices=device_resources
 )
